@@ -1,12 +1,18 @@
+import { Route, Routes } from 'react-router'
 import './index.css'
+import Create from './pages/Create'
+import Chat from './pages/Chat'
+import Join from './pages/Join'
 
 function App() {
 
   return (
-    <div className='bg-black text-white flex flex-col'>
-      <h1>Huddle</h1>
-      <p>Create a room. Share the code. Start chatting.</p>
-    </div>
+    <Routes>
+      <Route path='/' element={<Create />} />
+      <Route path='/join' element={<Join />} />
+      <Route path='/chat' element={<Chat />} />
+    </Routes>
+    
   )
 }
 
