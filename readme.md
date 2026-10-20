@@ -1,3 +1,3 @@
-Huddle
+``Huddle``
 
-``CREATE CONNECT AND TALK``
+``CREATE CONNECT CHAT``
