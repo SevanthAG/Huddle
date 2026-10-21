@@ -12,13 +12,13 @@ function App() {
     const ws = new WebSocket("ws://localhost:8080")
 
     ws.onopen = () =>{
-      
+        ws.send("ping")
     }
 
-    // ws.onmessage = (event) => {
-    //   // alert(event.data)
-    //   // ws.send("ping")
-    // }
+    ws.onmessage = (event) => {
+      // alert(event.data)
+      // ws.send("ping")
+    }
 
 
     ws.onerror = () => {
@@ -29,7 +29,6 @@ function App() {
       console.log("Connection Closed")
     }
 
-    // wsRef.current = ws;
     
 
     return () => {

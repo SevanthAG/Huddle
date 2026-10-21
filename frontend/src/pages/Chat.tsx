@@ -15,7 +15,6 @@ const Chat = () => {
   const handleSend = () => {
     const message = inputRef.current?.value.trim();
 
-    console.log(message);
     if (!message) {
       return;
     }
@@ -26,17 +25,17 @@ const Chat = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-black flex items-center justify-center p-4">
       <Card className="w-full max-w-2xl h-[85vh] flex flex-col p-4">
         <CardHeader className="border-b px-2 pb-4">
           <CardTitle className="text-2xl font-bold">Huddle</CardTitle>
-          <CardDescription>Chat Karo..!! Moj Karo!!</CardDescription>
+          <CardDescription>Chat Karo..!! Moj Karo..!!</CardDescription>
         </CardHeader>
 
-        {/* Messages */}
         <div className="flex-1 overflow-y-auto space-y-4 py-4">
           {messages.map((message, index) => (
-            <div key={index}>{message}</div>
+            <div 
+            key={index}>{message}</div>
           ))}
         </div>
 

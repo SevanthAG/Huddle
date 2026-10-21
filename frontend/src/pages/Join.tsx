@@ -5,8 +5,8 @@ import { useRef } from "react";
 import { Link, useNavigate } from "react-router";
 
 const Join = () => {
-  const userNameRef = useRef(null);
-  const roomIdRef = useRef(null);
+  const userNameRef = useRef<HTMLInputElement>(null);
+  const roomIdRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
   const handleJoin = () => {

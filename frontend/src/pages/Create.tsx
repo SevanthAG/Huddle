@@ -5,7 +5,7 @@ import { useRef } from 'react'
 import { Link, useNavigate } from 'react-router';
 
 const Create = () => {
-  const userNameRef = useRef(null);
+  const userNameRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
   const handleCreate = () => {
