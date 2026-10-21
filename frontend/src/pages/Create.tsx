@@ -1,13 +1,23 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input'
+import { toast } from '@/components/ui/toast';
 import { useRef } from 'react'
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 
 const Create = () => {
   const userNameRef = useRef(null);
+  const navigate = useNavigate();
 
   const handleCreate = () => {
-    console.log(userNameRef.current.value)
+    const username = userNameRef.current?.value.trim();
+    if(!username){
+      toast.add({
+        title: "Username Missing..!!",
+        type: "warning"
+      })
+      return
+    }
+    navigate("/chat");
   }
 
   return (
