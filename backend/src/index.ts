@@ -1,6 +1,5 @@
 import { WebSocketServer, WebSocket } from "ws";
 import { randomUUID } from "node:crypto";
-import { parse } from "node:path";
 
 const wss = new WebSocketServer({ port: 8080 });
 
@@ -105,6 +104,36 @@ wss.on("connection", (socket) => {
             },
           }),
         );
+      }
+
+      if(parsedMessage.type === "chat_message"){
+        const chatMessage = parsedMessage.payload.message;
+
+        const member = connections.get(socket);
+
+        if(!member || !member.roomId){
+          return;
+        }
+
+        const room = rooms.get(member.roomId);
+
+        if(!room){
+          return
+        }
+
+        const response = JSON.stringify({
+            type: "chat_message",
+            payload: {
+              username: member.username,
+              message: chatMessage
+            }
+          })
+
+          for(const [memberSocket] of room.members) {
+            if(memberSocket.readyState === WebSocket.OPEN){
+              memberSocket.send(response)
+            }
+          }
       }
     } catch {
       socket.send(
