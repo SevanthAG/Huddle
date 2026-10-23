@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import {
   Card,
+  CardAction,
   CardDescription,
   CardHeader,
   CardTitle,
@@ -10,14 +11,20 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router";
 import { onMessage, send } from "@/lib/socket";
 
-const Chat = () => {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [messages, setMessages] = useState<
-    {
+type ChatItem =
+  | {
+      kind: "chat";
       username: string;
       message: string;
-    }[]
-  >([]);
+    }
+  | {
+      kind: "system";
+      text: string;
+    };
+
+const Chat = () => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [messages, setMessages] = useState<ChatItem[]>([]);
   const { state } = useLocation();
   const roomId = state?.roomId;
 
@@ -27,8 +34,19 @@ const Chat = () => {
         setMessages((prev) => [
           ...prev,
           {
+            kind: "chat",
             username: message.payload.username,
             message: message.payload.message,
+          },
+        ]);
+      }
+
+      if (message.type === "user_joined") {
+        setMessages((prev) => [
+          ...prev,
+          {
+            kind: "system",
+            text: `${message.payload.username} joined the room`,
           },
         ]);
       }
@@ -47,6 +65,10 @@ const Chat = () => {
     send("chat_message", { message: message });
   };
 
+  const handleLeave = () => {
+    
+  }
+
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-4">
       <Card className="w-full max-w-2xl h-[85vh] flex flex-col p-4">
@@ -55,14 +77,28 @@ const Chat = () => {
           <CardDescription>
             <p>Room: {roomId}</p>
           </CardDescription>
+          <CardAction>
+            <Button variant={"ghost"} onClick={handleLeave}>
+              Leave_Room
+            </Button>
+          </CardAction>
         </CardHeader>
 
         <div className="flex-1 overflow-y-auto space-y-4 py-4">
-          {messages.map((msg, index) => (
-            <div key={index}>
-              <span>{msg.username}</span>: {msg.message}
-            </div>
-          ))}
+          {messages.map((msg, index) =>
+            msg.kind === "chat" ? (
+              <div key={index}>
+                <span>{msg.username}</span>: {msg.message}
+              </div>
+            ) : (
+              <div
+                key={index}
+                className="text-center text-sm text-gray-500 italic"
+              >
+                {msg.text}
+              </div>
+            ),
+          )}
         </div>
 
         <div className="flex gap-2 border-t pt-4">

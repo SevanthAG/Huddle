@@ -104,36 +104,52 @@ wss.on("connection", (socket) => {
             },
           }),
         );
+
+        const userJoined = JSON.stringify({
+          type: "user_joined",
+          payload: {
+            username: member.username,
+          },
+        });
+
+        for (const [memberSocket] of room.members) {
+          if (
+            memberSocket !== socket &&
+            memberSocket.readyState === WebSocket.OPEN
+          ) {
+            memberSocket.send(userJoined);
+          }
+        }
       }
 
-      if(parsedMessage.type === "chat_message"){
+      if (parsedMessage.type === "chat_message") {
         const chatMessage = parsedMessage.payload.message;
 
         const member = connections.get(socket);
 
-        if(!member || !member.roomId){
+        if (!member || !member.roomId) {
           return;
         }
 
         const room = rooms.get(member.roomId);
 
-        if(!room){
-          return
+        if (!room) {
+          return;
         }
 
         const response = JSON.stringify({
-            type: "chat_message",
-            payload: {
-              username: member.username,
-              message: chatMessage
-            }
-          })
+          type: "chat_message",
+          payload: {
+            username: member.username,
+            message: chatMessage,
+          },
+        });
 
-          for(const [memberSocket] of room.members) {
-            if(memberSocket.readyState === WebSocket.OPEN){
-              memberSocket.send(response)
-            }
+        for (const [memberSocket] of room.members) {
+          if (memberSocket.readyState === WebSocket.OPEN) {
+            memberSocket.send(response);
           }
+        }
       }
     } catch {
       socket.send(
