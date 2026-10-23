@@ -2,11 +2,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input'
 import { toast } from '@/components/ui/toast';
 import { useRef } from 'react'
-import { Link, useNavigate } from 'react-router';
+import { Link } from 'react-router';
+import { send } from "@/lib/socket"
 
 const Create = () => {
   const userNameRef = useRef<HTMLInputElement>(null);
-  const navigate = useNavigate();
 
   const handleCreate = () => {
     const username = userNameRef.current?.value.trim();
@@ -17,7 +17,7 @@ const Create = () => {
       })
       return
     }
-    navigate("/chat");
+   send("create_room", { username: username })
   }
 
   return (

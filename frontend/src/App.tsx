@@ -3,39 +3,10 @@ import './index.css'
 import Create from './pages/Create'
 import Chat from './pages/Chat'
 import Join from './pages/Join'
-import { useEffect } from 'react'
 
 function App() {
 
 
-  useEffect(()=>{
-    const ws = new WebSocket("ws://localhost:8080")
-
-    ws.onopen = () =>{
-        ws.send("ping")
-    }
-
-    ws.onmessage = (event) => {
-      // alert(event.data)
-      // ws.send("ping")
-    }
-
-
-    ws.onerror = () => {
-      console.log("Connection Error")
-    }
-
-    ws.onclose = () => {
-      console.log("Connection Closed")
-    }
-
-    
-
-    return () => {
-      ws.close();
-    }
-
-  },[])
 
   return (
     <Routes>
