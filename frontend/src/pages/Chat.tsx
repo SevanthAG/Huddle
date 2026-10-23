@@ -8,6 +8,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useRef, useState } from "react";
 import { useLocation } from "react-router";
+import { send } from "@/lib/socket";
 
 const Chat = () => {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -26,6 +27,8 @@ const Chat = () => {
     setMessages((prev) => [...prev, message]);
 
     inputRef.current!.value = "";
+
+    send("chat_message", { message: message })
   };
 
   return (

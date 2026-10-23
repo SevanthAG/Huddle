@@ -1,27 +1,44 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/toast";
-import { useRef } from "react";
-import { Link } from "react-router";
-import { send } from "@/lib/socket";
+import { useEffect, useRef } from "react";
+import { Link, useNavigate } from "react-router";
+import { onMessage, send } from "@/lib/socket";
 
 const Join = () => {
   const userNameRef = useRef<HTMLInputElement>(null);
   const roomIdRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    return onMessage((message) => {
+      if (message.type === "room_joined") {
+        navigate("/chat", {
+          state: {
+            username: message.payload.username,
+            roomId: message.payload.roomId,
+          },
+        });
+      }
+
+      if (message.type === "error") {
+        toast.add({ title: message.payload.message, type: "error" });
+      }
+    });
+  }, []);
 
   const handleJoin = () => {
     const username = userNameRef.current?.value.trim();
     const roomId = roomIdRef.current?.value.trim();
 
-    if(!username || !roomId){
+    if (!username || !roomId) {
       toast.add({
         title: "Username or RoomId Missing..!!",
-        type: "warning"
-      })
-      return
+        type: "warning",
+      });
+      return;
     }
-
-    send("join_room", {username: username, roomId: roomId})
+    send("join_room", { username: username, roomId: roomId });
   };
 
   return (

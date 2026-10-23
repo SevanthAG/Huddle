@@ -13,7 +13,7 @@ const Create = () => {
   useEffect(() => {
     return onMessage((message) => {
       if (message.type === "room_created") {
-        navigate("chat", {
+        navigate("/chat", {
           state: {
             username: pendingUsername.current,
             roomId: message.payload.roomId,
