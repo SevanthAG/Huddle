@@ -16,6 +16,40 @@ interface Room {
 const rooms = new Map<string, Room>();
 const connections = new Map<WebSocket, Member>();
 
+function removeFromRoom(socket: WebSocket) {
+  const member = connections.get(socket);
+
+  if (!member || !member.roomId) {
+    return;
+  }
+
+  const room = rooms.get(member.roomId);
+
+  if (!room) {
+    return;
+  }
+
+  room.members.delete(socket);
+  connections.delete(socket);
+
+  const response = JSON.stringify({
+    type: "user_left",
+    payload: {
+      username: member.username,
+    },
+  });
+
+  for (const [memberSocket] of room.members) {
+    if (memberSocket.readyState === WebSocket.OPEN) {
+      memberSocket.send(response);
+    }
+  }
+
+  if (room.members.size === 0) {
+    rooms.delete(member.roomId);
+  }
+}
+
 wss.on("connection", (socket) => {
   console.log("User Connected");
 
@@ -151,6 +185,10 @@ wss.on("connection", (socket) => {
           }
         }
       }
+
+      if (parsedMessage.type === "leave_room") {
+        removeFromRoom(socket);
+      }
     } catch {
       socket.send(
         JSON.stringify({
@@ -166,6 +204,6 @@ wss.on("connection", (socket) => {
   });
 
   socket.on("close", () => {
-    console.log("User Disconncted..!!");
+    removeFromRoom(socket);
   });
 });

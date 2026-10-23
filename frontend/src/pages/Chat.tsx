@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useEffect, useRef, useState } from "react";
-import { useLocation } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { onMessage, send } from "@/lib/socket";
 
 type ChatItem =
@@ -27,6 +27,8 @@ const Chat = () => {
   const [messages, setMessages] = useState<ChatItem[]>([]);
   const { state } = useLocation();
   const roomId = state?.roomId;
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     return onMessage((message) => {
@@ -50,6 +52,15 @@ const Chat = () => {
           },
         ]);
       }
+
+      if(message.type ===  "user_left"){
+        setMessages((prev)=> [
+          ...prev,
+          { kind: "system",
+            text: `${message.payload.username} left the room`
+          }
+        ])
+      }
     });
   }, []);
 
@@ -66,7 +77,8 @@ const Chat = () => {
   };
 
   const handleLeave = () => {
-    
+    send("leave_room")
+    navigate("/")
   }
 
   return (
