@@ -7,10 +7,14 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useRef, useState } from "react";
+import { useLocation } from "react-router";
 
 const Chat = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [messages, setMessages] = useState<string[]>([]);
+  const { state } = useLocation();
+  const roomId = state?.roomId;
+  const username = state?.username;  
 
   const handleSend = () => {
     const message = inputRef.current?.value.trim();
@@ -29,7 +33,7 @@ const Chat = () => {
       <Card className="w-full max-w-2xl h-[85vh] flex flex-col p-4">
         <CardHeader className="border-b px-2 pb-4">
           <CardTitle className="text-2xl font-bold">Huddle</CardTitle>
-          <CardDescription>Chat Karo..!! Moj Karo..!!</CardDescription>
+          <CardDescription><p>Room: {roomId}</p></CardDescription>
         </CardHeader>
 
         <div className="flex-1 overflow-y-auto space-y-4 py-4">

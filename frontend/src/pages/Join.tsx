@@ -2,12 +2,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/toast";
 import { useRef } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link } from "react-router";
+import { send } from "@/lib/socket";
 
 const Join = () => {
   const userNameRef = useRef<HTMLInputElement>(null);
   const roomIdRef = useRef<HTMLInputElement>(null);
-  const navigate = useNavigate();
 
   const handleJoin = () => {
     const username = userNameRef.current?.value.trim();
@@ -21,7 +21,7 @@ const Join = () => {
       return
     }
 
-    navigate("/chat");
+    send("join_room", {username: username, roomId: roomId})
   };
 
   return (
