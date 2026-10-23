@@ -7,6 +7,44 @@
 
 </aside>
 
+## Implementation status
+
+Proven working end to end, as of Phase 9. Anything below that is not marked implemented is still a plan.
+
+**Working:**
+
+- One WebSocket connection per browser tab, created once in `frontend/src/lib/socket.ts` and imported by `main.tsx`.
+- **Create Room** — the client sends `create_room` and navigates to the chat screen only after the server replies `room_created`.
+- **Join Room** — the client sends `join_room`, navigates only on `room_joined`, and on an `error` reply shows a "Room not found" toast while staying on the entry screen.
+- The chat screen displays the room ID it received from the server.
+- **Send a message** — the client sends `chat_message`; the server broadcasts it to every member of that room, including the sender; each message renders with its author's username.
+- Rooms are isolated — a second room receives nothing from the first.
+
+**Not built yet:**
+
+- The `user_joined` broadcast on the server (Phase 10).
+- Leave Room, disconnect cleanup, and deletion of empty rooms (Phase 11).
+- Unknown message types are ignored silently, with no error returned to the client (Phase 12).
+- Room IDs are 36-character UUIDs, which are impractical to share. Revisit later.
+
+### Running locally
+
+Backend, in one terminal:
+
+```sh
+cd backend
+bun --hot src/index.ts
+```
+
+Frontend, in a second terminal:
+
+```sh
+cd frontend
+bun run dev
+```
+
+The frontend connects to `ws://localhost:8080`, which is the port the backend listens on.
+
 ## 1. Project summary
 
 A lightweight, temporary, room-based chat app built from the user's existing WebSocket learning project. A user enters a username, creates a room or joins an active room by ID, and exchanges messages live with people in that room.
@@ -62,9 +100,11 @@ A lightweight, temporary, room-based chat app built from the user's existing Web
 4. If no members remain, server deletes the room from the active room registry.
 5. Future join attempts with that ID receive “Room not found.”
 
-## 4. Client → server: planned message contract
+## 4. Client → server: message contract
 
-These are proposed event names and payload shapes to guide implementation. They are not yet verified against the current code and can be adapted to the existing `ws` implementation.
+Implemented: `create_room`, `join_room`, `chat_message`. Still planned: `leave_room`.
+
+Every message is JSON with a `type` and, where needed, a `payload`. Unparseable input returns an `INVALID_JSON` error rather than crashing the server.
 
 ### `create_room`
 
@@ -116,7 +156,9 @@ Purpose: send a message. The server should use the sender's registered room memb
 
 Purpose: leave the current room intentionally. The server must also handle socket disconnection without relying on this event.
 
-## 5. Server → client: planned message contract
+## 5. Server → client: message contract
+
+Implemented: `room_created`, `room_joined`, `chat_message`, `error`. Still planned: `user_joined`, `user_left`.
 
 ### `room_created`
 
@@ -199,13 +241,19 @@ Purpose: notify remaining members when a user leaves or disconnects.
 
 Purpose: return a structured error for invalid room IDs or other invalid requests. More error codes can be added when actual implementation needs them.
 
-## 6. Server-side state (initial design)
+## 6. Server-side state
 
-- **Rooms:** a map keyed by room ID, containing the active connections in each room.
-- **Connection metadata:** each socket/connection tracks its username and current room ID.
-- **No database required for the first version:** rooms and messages are temporary in-memory state.
-- **Membership is server-controlled:** clients cannot broadcast into rooms they have not joined.
-- **Cleanup:** both explicit leave and socket disconnect use a shared cleanup path to avoid stale members and empty rooms.
+Implemented in `backend/src/index.ts` with two Maps in module scope.
+
+- **`rooms: Map<string, Room>`** — keyed by room ID. Each `Room` holds `members: Map<WebSocket, Member>`.
+- **`connections: Map<WebSocket, Member>`** — keyed by socket. The reverse index: given a socket, it answers "who is this, and which room are they in?" Each `Member` stores `username` and `roomId`.
+- **Two indexes over the same relationship.** `connections` is used when a message arrives from a socket; `rooms` is used when broadcasting to a whole room.
+- **Members are keyed by socket, not by username.** This is what allows duplicate usernames while still tracking two same-named users separately.
+- **Membership is server-controlled.** `chat_message` looks the sender's room up in `connections` and never trusts a client-supplied room ID as authorization.
+- **No database.** Rooms and messages are temporary in-memory state.
+- **Room IDs** come from `randomUUID()`, which cannot collide with an active room.
+
+**Still missing:** the `close` handler only logs. Members are never removed from a room, `connections` never shrinks, and empty rooms are never deleted. That is Phase 11.
 
 ## 7. Important edge cases
 
@@ -225,12 +273,12 @@ Messages are not persisted. A client sees messages delivered while it is a membe
 
 ## 9. Development order
 
-- [ ]  Inspect the existing lecture code and understand its current protocol.
-- [ ]  Agree final event names and payload shapes with the existing code.
-- [ ]  Implement server-side room registry and ID generation.
-- [ ]  Implement create-room acknowledgement and frontend navigation.
-- [ ]  Implement join-room validation and error display.
-- [ ]  Implement room-only message broadcast.
+- [x]  Inspect the existing lecture code and understand its current protocol.
+- [x]  Agree final event names and payload shapes with the existing code.
+- [x]  Implement server-side room registry and ID generation.
+- [x]  Implement create-room acknowledgement and frontend navigation.
+- [x]  Implement join-room validation and error display.
+- [x]  Implement room-only message broadcast.
 - [ ]  Implement join/leave notifications.
 - [ ]  Implement disconnect cleanup and empty-room deletion.
 - [ ]  Test with multiple browser tabs, including invalid IDs and abrupt tab closes.
@@ -238,8 +286,15 @@ Messages are not persisted. A client sees messages delivered while it is a membe
 
 ## 10. Decisions still open
 
-- Exact frontend framework and UI implementation details.
-- Exact event names after reviewing the current source code.
+Settled:
+
+- ✅ Frontend stack — React + TypeScript + Vite, routed with `react-router`.
+- ✅ Event names and payload shapes — as written in sections 4 and 5.
+- ✅ Room ID generation — `randomUUID()` on the server.
+
+Open:
+
+- Room ID format for sharing. A 36-character UUID is unique but unusable to read aloud or type.
 - Whether the server sends timestamps later.
 - Maximum message length and basic rate limiting.
 - Deployment configuration.

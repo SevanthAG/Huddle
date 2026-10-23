@@ -33,7 +33,7 @@ const Chat = () => {
         ]);
       }
     });
-  });
+  }, []);
 
   const handleSend = () => {
     const message = inputRef.current?.value.trim();
