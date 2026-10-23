@@ -158,6 +158,10 @@ wss.on("connection", (socket) => {
 
       if (parsedMessage.type === "chat_message") {
         const chatMessage = parsedMessage.payload.message;
+        
+        if(!chatMessage || !chatMessage.trim()){
+          return
+        }
 
         const member = connections.get(socket);
 
