@@ -6,16 +6,34 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router";
-import { send } from "@/lib/socket";
+import { onMessage, send } from "@/lib/socket";
 
 const Chat = () => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [messages, setMessages] = useState<string[]>([]);
+  const [messages, setMessages] = useState<
+    {
+      username: string;
+      message: string;
+    }[]
+  >([]);
   const { state } = useLocation();
   const roomId = state?.roomId;
-  const username = state?.username;  
+
+  useEffect(() => {
+    return onMessage((message) => {
+      if (message.type === "chat_message") {
+        setMessages((prev) => [
+          ...prev,
+          {
+            username: message.payload.username,
+            message: message.payload.message,
+          },
+        ]);
+      }
+    });
+  });
 
   const handleSend = () => {
     const message = inputRef.current?.value.trim();
@@ -24,11 +42,9 @@ const Chat = () => {
       return;
     }
 
-    setMessages((prev) => [...prev, message]);
-
     inputRef.current!.value = "";
 
-    send("chat_message", { message: message })
+    send("chat_message", { message: message });
   };
 
   return (
@@ -36,13 +52,16 @@ const Chat = () => {
       <Card className="w-full max-w-2xl h-[85vh] flex flex-col p-4">
         <CardHeader className="border-b px-2 pb-4">
           <CardTitle className="text-2xl font-bold">Huddle</CardTitle>
-          <CardDescription><p>Room: {roomId}</p></CardDescription>
+          <CardDescription>
+            <p>Room: {roomId}</p>
+          </CardDescription>
         </CardHeader>
 
         <div className="flex-1 overflow-y-auto space-y-4 py-4">
-          {messages.map((message, index) => (
-            <div 
-            key={index}>{message}</div>
+          {messages.map((msg, index) => (
+            <div key={index}>
+              <span>{msg.username}</span>: {msg.message}
+            </div>
           ))}
         </div>
 
