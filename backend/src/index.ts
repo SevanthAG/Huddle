@@ -1,10 +1,23 @@
 import { WebSocketServer, WebSocket } from "ws";
-import { randomUUID } from "node:crypto";
+import { randomInt } from "node:crypto";
 
 const port = Number(process.env.PORT) || 8080;
 
 const wss = new WebSocketServer({ port });
 console.log(`Listening on port ${port}`);
+
+const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+function generateRoomId(): string {
+  let code = "";
+  do {
+    code = "";
+    for (let i = 0; i < 6; i++) {
+      code += CODE_ALPHABET[randomInt(CODE_ALPHABET.length)];
+    }
+  } while (rooms.has(code));
+  return code;
+}
 
 interface Member {
   username: string;
@@ -68,7 +81,7 @@ wss.on("connection", (socket) => {
           return;
         }
 
-        const roomId: string = randomUUID();
+        const roomId: string = generateRoomId();
 
         const member: Member = {
           username,
@@ -97,7 +110,7 @@ wss.on("connection", (socket) => {
 
       if (parsedMessage.type === "join_room") {
         const username = parsedMessage.payload.username;
-        const roomId = parsedMessage.payload.roomId;
+        const roomId = String(parsedMessage.payload.roomId || "").toUpperCase();
 
         if (!username || !roomId) {
           return;

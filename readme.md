@@ -92,6 +92,7 @@ Every message is JSON with a `type` and, where needed, a `payload`. Input that i
 - **Members are keyed by socket, not by username,** so two people using the same name are tracked separately and leaving does not evict the other.
 - **One socket per browser tab.** It is created once in `frontend/src/lib/socket.ts` and shared by every page through `send()` and `onMessage()`. Navigating between pages does not reconnect.
 - **One cleanup path for two causes.** `removeFromRoom` runs for both an explicit `leave_room` and an unexpected socket close. It unregisters the socket, notifies the remaining members, and deletes the room once it is empty.
+- **Room IDs are server-generated 6-character codes** (`X95JJH`) drawn from an unambiguous alphabet — no `I`, `O`, `1`, `0` — and regenerated on collision with an active room. Joins are case-insensitive.
 
 ## Deployment
 
@@ -116,12 +117,11 @@ Two things that will bite you:
 
 - Unknown message types, empty usernames, and a `chat_message` sent before joining a room are ignored silently, with no error reply.
 - Message text is not type-checked; a non-string `message` falls through to the generic `INVALID_JSON` error.
-- Room IDs are 36-character UUIDs, which are impractical to read aloud or type.
+- Room ID is copyable but has no visible "copied" affordance beyond the brief icon swap.
 - Messages are not persisted. A new joiner sees only messages sent after they arrive.
 
 ## Possible next steps
 
-- Short, human-friendly room codes, with a copy button
+- A word-style room code option for people who still struggle to read 6 characters aloud
 - A visible connection-lost indicator
 - Message length limits and basic rate limiting
-- Deployment
