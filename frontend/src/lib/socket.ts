@@ -4,7 +4,6 @@ const socket = new WebSocket(WS_URL);
 
 const handlers = new Set<(message: any) => void>();
 
-
 export function send(type: string, payload?: any) {
   if (socket.readyState !== WebSocket.OPEN) {
     console.log("Not open");
