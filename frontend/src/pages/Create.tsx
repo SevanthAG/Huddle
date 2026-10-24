@@ -14,15 +14,14 @@ const Create = () => {
   useEffect(() => {
     return onMessage((message) => {
       if (message.type === "room_created") {
-        navigate("/chat", {
+        navigate(`/chat/${message.payload.roomId}`, {
           state: {
             username: pendingUsername.current,
-            roomId: message.payload.roomId,
           },
         });
       }
     });
-  }, []);
+  }, [navigate]);
 
   const handleCreate = () => {
     const username = userNameRef.current?.value.trim();

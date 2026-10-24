@@ -12,7 +12,7 @@ function App() {
     <Routes>
       <Route path='/' element={<Create />} />
       <Route path='/join' element={<Join />} />
-      <Route path='/chat' element={<Chat />} />
+      <Route path='/chat/:roomId' element={<Chat />} />
     </Routes>
     
   )

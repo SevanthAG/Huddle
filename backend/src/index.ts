@@ -141,6 +141,8 @@ wss.on("connection", (socket) => {
           return;
         }
 
+        const alreadyMember = connections.get(socket)?.roomId === roomId;
+
         room.members.set(socket, member);
         connections.set(socket, member);
         rooms.set(roomId, room);
@@ -154,6 +156,10 @@ wss.on("connection", (socket) => {
             },
           }),
         );
+
+        if (alreadyMember) {
+          return;
+        }
 
         const userJoined = JSON.stringify({
           type: "user_joined",

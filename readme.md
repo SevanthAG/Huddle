@@ -92,6 +92,7 @@ Every message is JSON with a `type` and, where needed, a `payload`. Input that i
 - **Members are keyed by socket, not by username,** so two people using the same name are tracked separately and leaving does not evict the other.
 - **One socket per browser tab.** It is created once in `frontend/src/lib/socket.ts` and shared by every page through `send()` and `onMessage()`. Navigating between pages does not reconnect.
 - **One cleanup path for two causes.** `removeFromRoom` runs for both an explicit `leave_room` and an unexpected socket close. It unregisters the socket, notifies the remaining members, and deletes the room once it is empty.
+- **The room lives in the URL** (`/chat/:roomId`), so a page refresh does not lose it. On mount the chat screen re-sends `join_room`; the server treats a re-join from a socket already in that room as an acknowledgement and does not re-broadcast `user_joined`. The joining username is kept in `sessionStorage` for the lifetime of the tab, and a chat URL opened in a fresh tab sends the user to the join screen with the room ID pre-filled.
 - **Room IDs are server-generated 6-character codes** (`X95JJH`) drawn from an unambiguous alphabet — no `I`, `O`, `1`, `0` — and regenerated on collision with an active room. Joins are case-insensitive.
 
 ## Deployment

@@ -3,21 +3,22 @@ import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/toast";
 import { ArrowRight, LogIn, MessagesSquare } from "lucide-react";
 import { useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { onMessage, send } from "@/lib/socket";
 
 const Join = () => {
   const userNameRef = useRef<HTMLInputElement>(null);
   const roomIdRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const prefillRoomId = searchParams.get("roomId") ?? "";
 
   useEffect(() => {
     return onMessage((message) => {
       if (message.type === "room_joined") {
-        navigate("/chat", {
+        navigate(`/chat/${message.payload.roomId}`, {
           state: {
             username: message.payload.username,
-            roomId: message.payload.roomId,
           },
         });
       }
@@ -26,7 +27,7 @@ const Join = () => {
         toast.add({ title: message.payload.message, type: "error" });
       }
     });
-  }, []);
+  }, [navigate]);
 
   const handleJoin = () => {
     const username = userNameRef.current?.value.trim();
@@ -67,6 +68,7 @@ const Join = () => {
         <Input
           ref={roomIdRef}
           type="text"
+          defaultValue={prefillRoomId}
           placeholder="Enter a room ID"
           aria-label="Room ID"
           className="h-11"

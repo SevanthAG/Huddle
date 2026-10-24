@@ -10,8 +10,9 @@ import {
   SendHorizonal,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router";
+import { useLocation, useNavigate, useParams } from "react-router";
 import { onMessage, send } from "@/lib/socket";
+import { toast } from "@/components/ui/toast";
 
 type ChatItem =
   | {
@@ -24,21 +25,32 @@ type ChatItem =
       text: string;
     };
 
+const USERNAME_KEY = "huddle.username";
+
 const Chat = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<ChatItem[]>([]);
   const [copied, setCopied] = useState(false);
+  const { roomId } = useParams();
   const { state } = useLocation();
-  const roomId = state?.roomId;
-  const username = state?.username;
   const navigate = useNavigate();
+
+  const username = state?.username ?? sessionStorage.getItem(USERNAME_KEY) ?? "";
 
   useEffect(() => {
     if (!roomId) {
       navigate("/");
+      return;
     }
-  }, [roomId, navigate]);
+
+    if (username) {
+      sessionStorage.setItem(USERNAME_KEY, username);
+      send("join_room", { username, roomId });
+    } else {
+      navigate(`/join?roomId=${roomId}`);
+    }
+  }, [roomId, username, navigate]);
 
   useEffect(() => {
     return onMessage((message) => {
@@ -72,8 +84,13 @@ const Chat = () => {
           },
         ]);
       }
+
+      if (message.type === "error") {
+        toast.add({ title: message.payload.message, type: "error" });
+        navigate(`/join?roomId=${roomId}`);
+      }
     });
-  }, []);
+  }, [roomId]);
 
   useEffect(() => {
     const el = scrollRef.current;
