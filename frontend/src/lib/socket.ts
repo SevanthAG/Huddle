@@ -1,4 +1,6 @@
-const socket = new WebSocket("ws://localhost:8080");
+const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:8080";
+
+const socket = new WebSocket(WS_URL);
 
 const handlers = new Set<(message: any) => void>();
 

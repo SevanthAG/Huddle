@@ -1,7 +1,10 @@
 import { WebSocketServer, WebSocket } from "ws";
 import { randomUUID } from "node:crypto";
 
-const wss = new WebSocketServer({ port: 8080 });
+const port = Number(process.env.PORT) || 8080;
+
+const wss = new WebSocketServer({ port });
+console.log(`Listening on port ${port}`);
 
 interface Member {
   username: string;

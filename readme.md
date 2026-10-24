@@ -93,6 +93,25 @@ Every message is JSON with a `type` and, where needed, a `payload`. Input that i
 - **One socket per browser tab.** It is created once in `frontend/src/lib/socket.ts` and shared by every page through `send()` and `onMessage()`. Navigating between pages does not reconnect.
 - **One cleanup path for two causes.** `removeFromRoom` runs for both an explicit `leave_room` and an unexpected socket close. It unregisters the socket, notifies the remaining members, and deletes the room once it is empty.
 
+## Deployment
+
+The frontend and backend are separate services.
+
+- **Backend:** deploy `backend/` to any host that runs Bun (Render, Railway, Fly, a VPS). Set the `PORT` environment variable on the host — the server reads it, and falls back to `8080` locally. Start it with `bun src/index.ts` (the `start` script), not the dev `--hot` command.
+- **Frontend:** deploy `frontend/` as a static site (Netlify, Vercel, Cloudflare Pages). Run `bun run build` and serve `dist/`. The build bakes in the WebSocket target from `VITE_WS_URL`.
+
+Environment variables:
+
+| Variable | Where | What it controls |
+|---|---|---|
+| `PORT` | backend | The port the WebSocket server listens on. Platforms set this automatically. |
+| `VITE_WS_URL` | frontend, at build time | The WebSocket URL the browser will connect to. `ws://localhost:8080` locally, `wss://…` in production. |
+
+Two things that will bite you:
+
+- `VITE_*` values are inlined at **build time**, not read at runtime. Changing `VITE_WS_URL` requires rebuilding.
+- The deployed frontend is served over HTTPS, so `VITE_WS_URL` must start with `wss://`. Browsers block plain `ws://` from an https page.
+
 ## Limitations
 
 - Unknown message types, empty usernames, and a `chat_message` sent before joining a room are ignored silently, with no error reply.
