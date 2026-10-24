@@ -3,18 +3,22 @@ const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:8080";
 const socket = new WebSocket(WS_URL);
 
 const handlers = new Set<(message: any) => void>();
+const queue: string[] = [];
 
 export function send(type: string, payload?: any) {
-  if (socket.readyState !== WebSocket.OPEN) {
-    console.log("Not open");
+  const text = JSON.stringify({
+    type,
+    payload,
+  });
+
+  if (socket.readyState === WebSocket.OPEN) {
+    socket.send(text);
     return;
   }
-  socket.send(
-    JSON.stringify({
-      type,
-      payload,
-    }),
-  );
+
+  if (socket.readyState === WebSocket.CONNECTING) {
+    queue.push(text);
+  }
 }
 
 export function onMessage(handler: (message: any) => void){
@@ -25,6 +29,10 @@ export function onMessage(handler: (message: any) => void){
 }
 
 socket.onopen = () => {
+  for (const text of queue) {
+    socket.send(text);
+  }
+  queue.length = 0;
   console.log("Connected To Server");
 };
 
